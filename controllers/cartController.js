@@ -5,20 +5,20 @@ const Book = require('../Models/bookModel');
 const cartController = {
   addToCart: async (req, res) => {
     try {
-      const { bookId, quantity } = req.body;
+      const { productId, quantity } = req.body;
       const userId = req.session.userId; // Assuming user ID is stored in the session
 
-      const book = await Book.findById(bookId);
+      const book = await Book.findById(productId);
       if (!book) {
         return res.status(404).json({ error: 'Book not found' });
       }
 
       // Check if the book is already in the cart, if yes, update the quantity
-      let cartItem = await Cart.findOne({ userId, bookId });
+      let cartItem = await Cart.findOne({ userId, productId });
       if (cartItem) {
         cartItem.quantity += quantity;
       } else {
-        cartItem = new Cart({ userId, bookId, quantity });
+        cartItem = new Cart({ userId, productId, quantity });
       }
 
       await cartItem.save();
@@ -32,10 +32,10 @@ const cartController = {
 
   removeFromCart: async (req, res) => {
     try {
-      const { bookId } = req.params;
+      const { productId } = req.params;
       const userId = req.session.userId; // Assuming user ID is stored in the session
 
-      const cartItem = await Cart.findOneAndDelete({ userId, bookId });
+      const cartItem = await Cart.findOneAndDelete({ userId, productId });
       if (!cartItem) {
         return res.status(404).json({ error: 'Book not found in cart' });
       }
@@ -49,11 +49,11 @@ const cartController = {
 
   updateQuantity: async (req, res) => {
     try {
-      const { bookId, quantity } = req.body;
+      const { productId, quantity } = req.body;
       const userId = req.session.userId; // Assuming user ID is stored in the session
 
       const cartItem = await Cart.findOneAndUpdate(
-        { userId, bookId },
+        { userId, productId },
         { quantity },
         { new: true }
       );
@@ -96,10 +96,10 @@ const cartController = {
     try {
       const userId = req.session.userId; // Assuming user ID is stored in the session
 
-      const cartItems = await Cart.find({ userId }).populate('bookId');
+      const cartItems = await Cart.find({ userId }).populate('productId');
       let totalPrice = 0;
       cartItems.forEach((item) => {
-        totalPrice += item.quantity * item.bookId.price;
+        totalPrice += item.quantity * item.productId.price;
       });
 
       res.status(200).json({ totalPrice });
@@ -133,7 +133,7 @@ const cartController = {
     try {
       const userId = req.session.userId; // Assuming user ID is stored in the session
 
-      const cartItems = await Cart.find({ userId }).sort({ createdAt: 1 }).populate('bookId');
+      const cartItems = await Cart.find({ userId }).sort({ createdAt: 1 }).populate('productId');
       res.status(200).json(cartItems);
     } catch (error) {
       console.error('Error sorting cart items:', error);
