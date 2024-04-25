@@ -1,6 +1,6 @@
-const Cart = require('../models/cartModel');
-const SavedCart = require('../models/savedCartModel');
-const Book = require('../models/bookModel');
+const Cart = require('../Models/cartModel');
+const SavedCart = require('../Models/savedCartModel');
+const Book = require('../Models/bookModel');
 
 const cartController = {
   addToCart: async (req, res) => {
