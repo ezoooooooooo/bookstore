@@ -1,7 +1,7 @@
 const express = require('express');
 const session = require('express-session');
 const dotenv = require('dotenv');
-const { connectToDb } = require('./db');
+const  connectToDb  = require('./db');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const bookRoutes = require('./routes/bookRoutes');
@@ -18,13 +18,11 @@ app.use(session({
   saveUninitialized: false
 }));
 
-connectToDb((err) => {
-  if (!err) {
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      console.log(`Server is running on http://localhost:${PORT}`);
-    });
-  }
+connectToDb(); // Invoke the connectToDb function
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
 });
 
 // Routes
