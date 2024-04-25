@@ -5,6 +5,8 @@ const  connectToDb  = require('./db');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const bookRoutes = require('./routes/bookRoutes');
+const cartRoutes = require('./routes/cartRoutes');
+const feedbackRoutes = require('./routes/feedbackRoutes');
 
 dotenv.config();
 
@@ -29,5 +31,7 @@ app.listen(PORT, () => {
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/books', bookRoutes);
+app.use('/cart', cartRoutes);
+app.use('/feedback', feedbackRoutes);
 
 module.exports = app;
