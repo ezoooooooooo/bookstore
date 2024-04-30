@@ -118,24 +118,28 @@ const cartController = {
   saveCart: async (req, res) => {
     try {
       const userId = req.session.userId;
-  
-      const cartItems = await Cart.find({ userId });
-  
-      // Check if cartItems exist and have valid productIds
+
+      // Find the current cart items for the user
+      const cartItems = await Cart.find({ userId }).populate('items.productId');
+
+      // Check if cartItems exist
       if (cartItems.length === 0) {
         return res.status(400).json({ error: 'Cart is empty' });
       }
-      for (const item of cartItems) {
-        if (!item.productId) {
-          return res.status(400).json({ error: 'Invalid productId in cart' });
-        }
-      }
-  
-      const savedCart = new SavedCart({ userId, cartItems: cartItems.map(item => ({ productId: item.productId, quantity: item.quantity })) });
+
+      // Extract productId and quantity from each item in the cart
+      const itemsToSave = cartItems.map(item => ({
+        productId: item.items[0].productId._id, // Extract the productId from the populated item
+        quantity: item.items[0].quantity
+      }));
+
+      // Save the cart items to the SavedCart collection
+      const savedCart = new SavedCart({ userId, cartItems: itemsToSave });
       await savedCart.save();
-  
+
+      // Clear the user's current cart
       await Cart.deleteMany({ userId });
-  
+
       res.status(200).json({ message: 'Cart saved successfully' });
     } catch (error) {
       console.error('Error saving cart:', error);
