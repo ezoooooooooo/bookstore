@@ -72,7 +72,7 @@ const cartController = {
     try {
       const userId = req.session.userId; // Assuming user ID is stored in the session
 
-      const cartItems = await Cart.find({ userId }).populate('bookId');
+      const cartItems = await Cart.find({ userId }).populate('productId');
       res.status(200).json(cartItems);
     } catch (error) {
       console.error('Error retrieving cart:', error);
