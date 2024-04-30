@@ -7,28 +7,32 @@ const cartController = {
     try {
       const { productId, quantity } = req.body;
       const userId = req.session.userId; // Assuming user ID is stored in the session
-
+  
       const book = await Book.findById(productId);
       if (!book) {
         return res.status(404).json({ error: 'Book not found' });
       }
-
+  
       // Check if the book is already in the cart, if yes, update the quantity
-      let cartItem = await Cart.findOne({ userId, productId });
+      let cartItem = await Cart.findOne({ userId, 'items.productId': productId });
       if (cartItem) {
-        cartItem.quantity += quantity;
+        // Update quantity of existing item
+        const index = cartItem.items.findIndex(item => item.productId.equals(productId));
+        cartItem.items[index].quantity += quantity;
       } else {
-        cartItem = new Cart({ userId, productId, quantity });
+        // Create new cart item
+        cartItem = new Cart({ userId, items: [{ productId, quantity }] });
       }
-
+  
       await cartItem.save();
-
+  
       res.status(200).json({ message: 'Book added to cart successfully' });
     } catch (error) {
       console.error('Error adding book to cart:', error);
       res.status(500).json({ error: 'Server error' });
     }
   },
+  
 
   removeFromCart: async (req, res) => {
     try {
@@ -70,15 +74,17 @@ const cartController = {
 
   viewCart: async (req, res) => {
     try {
-      const userId = req.session.userId; // Assuming user ID is stored in the session
-
-      const cartItems = await Cart.find({ userId }).populate('productId');
+      const userId = req.session.userId;
+    
+      const cartItems = await Cart.find({ userId }).populate('items.productId');
       res.status(200).json(cartItems);
     } catch (error) {
       console.error('Error retrieving cart:', error);
       res.status(500).json({ error: 'Server error' });
     }
   },
+  
+  
 
   clearCart: async (req, res) => {
     try {
@@ -111,24 +117,32 @@ const cartController = {
 
   saveCart: async (req, res) => {
     try {
-      const userId = req.session.userId; // Assuming user ID is stored in the session
-
-      // Find the current cart items for the user
+      const userId = req.session.userId;
+  
       const cartItems = await Cart.find({ userId });
-
-      // Save the cart items to the SavedCart collection
-      const savedCart = new SavedCart({ userId, cartItems });
+  
+      // Check if cartItems exist and have valid productIds
+      if (cartItems.length === 0) {
+        return res.status(400).json({ error: 'Cart is empty' });
+      }
+      for (const item of cartItems) {
+        if (!item.productId) {
+          return res.status(400).json({ error: 'Invalid productId in cart' });
+        }
+      }
+  
+      const savedCart = new SavedCart({ userId, cartItems: cartItems.map(item => ({ productId: item.productId, quantity: item.quantity })) });
       await savedCart.save();
-
-      // Clear the user's current cart
+  
       await Cart.deleteMany({ userId });
-
+  
       res.status(200).json({ message: 'Cart saved successfully' });
     } catch (error) {
       console.error('Error saving cart:', error);
       res.status(500).json({ error: 'Server error' });
     }
   },
+  
   sortCartItems: async (req, res) => {
     try {
       const userId = req.session.userId; // Assuming user ID is stored in the session
